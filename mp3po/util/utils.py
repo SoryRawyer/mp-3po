@@ -21,6 +21,13 @@ class Bits(object):
         self._position += num_bits
         return result
 
+    def read_bits_as_int(self, num_bits) -> int:
+        """
+        read_bits_as_int : read the number of bits requested and then return those in integer form
+        the bits are interpreted as an unsigned integer
+        """
+        return int(self.read(num_bits), 2)
+
     def seek(self, position):
         """
         seek : change the position from which we start reading the bitstring

@@ -3,6 +3,7 @@ mp3.py : do mp3 things
 """
 
 from .header import MP3Header, ChannelEncodings
+from .sideinfo import SideInfo
 
 class MP3File(object):
     """
@@ -50,10 +51,12 @@ class MP3File(object):
                     audio.read(2)
                 if header.channel == ChannelEncodings.MONO:
                     # side info is 17 bytes!
-                    side_info = audio.read(17)
+                    side_info_bytes = audio.read(17)
+                    side_info = SideInfo(header, side_info_bytes)
                 else:
                     # side info is 32 bytes!
-                    side_info = audio.read(32)
+                    side_info_bytes = audio.read(32)
+                    side_info = SideInfo(header, side_info_bytes)
                 if audio.peek(1) == b'':
                     break
                 frame = audio.read(1)
