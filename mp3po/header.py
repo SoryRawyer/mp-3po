@@ -3,6 +3,7 @@ header.py : all things MP3 headers
 """
 
 from enum import Enum
+from .util.utils import Bits
 
 class ChannelEncodings(Enum):
     """
@@ -183,34 +184,36 @@ class MP3Header(object):
     }
 
     def __init__(self, raw_bytes):
-        self.bitstring = ''
+        self._bits = Bits()
         for i in raw_bytes:
-            bit_str = MP3Header._pad_to_eight_bits(bin(i))
-            self.bitstring += bit_str
-        self.sync_word = self.bitstring[:11]
+            self._bits.add_bits(i)
+        self.sync_word = self._bits.read(11)
 
+        mpeg_bits = self._bits.read(2)
         for i in MPEGVersionEncodings:
-            if i.value == self.bitstring[11:13]:
+            if i.value == mpeg_bits:
                 self.mpeg_version = i
 
+        layer_bits = self._bits.read(2)
         for i in LayerEncodings:
-            if i.value == self.bitstring[13:15]:
+            if i.value == layer_bits:
                 self.layer = i
 
-        self.error_protection = self.bitstring[15]
-        self._bit_rate_bits = self.bitstring[16:20]
-        self._frequency_bits = self.bitstring[20:22]
-        self.pad_bit = self.bitstring[22]
-        self.priv_bit = self.bitstring[23]
+        self.error_protection = self._bits.read(1)
+        self._bit_rate_bits = self._bits.read(4)
+        self._frequency_bits = self._bits.read(2)
+        self.pad_bit = self._bits.read(1)
+        self.priv_bit = self._bits.read(1)
 
+        channel_bits = self._bits.read(2)
         for i in ChannelEncodings:
-            if i.value == self.bitstring[24:26]:
+            if i.value == channel_bits:
                 self.channel = i
 
-        self.mode_extention = self.bitstring[26:28]
-        self.copy = self.bitstring[28]
-        self.original = self.bitstring[29]
-        self.emphasis = self.bitstring[30:]
+        self.mode_extention = self._bits.read(2)
+        self.copy = self._bits.read(1)
+        self.original = self._bits.read(1)
+        self.emphasis = self._bits.read(2)
 
         self.bitrate = self._check_for_valid_value(self.bitrate_table,
                                                    'layer',
