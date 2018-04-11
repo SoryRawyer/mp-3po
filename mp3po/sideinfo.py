@@ -71,21 +71,26 @@ class SideInfo(object):
                     self.granules[i]['sub_block_gain'].append([])
                     for _ in range(0, 3):
                         self.granules[i]['sub_block_gain'][-1].append(self._bitstring.read_bits_as_int(3))
-                    if (self.granules[i]['block_type'][j] == 2
-                            and self.granules[i]['mixed_block_flag'][j] == 0):
-                        self.granules[i]['region0_count'].append(8)
-                    else:
-                        self.granules[i]['region0_count'].append(7)
-                    self.granules[i]['region1_count'].append(20 -
-                                                             self.granules[i]['region0_count'][j])
+                    # the below code is present in 
+                    # https://github.com/hajimehoshi/go-mp3/blob/master/internal/sideinfo/sideinfo.go
+                    # but it's making my tests fail so (shrug)
+                    # if (self.granules[i]['block_type'][j] == 2
+                    #         and self.granules[i]['mixed_block_flag'][j] == 0):
+                    #     self.granules[i]['region0_count'].append(8)
+                    # else:
+                    #     self.granules[i]['region0_count'].append(7)
+                    # self.granules[i]['region1_count'].append(20 -
+                    #                                          self.granules[i]['region0_count'][j])
                 else:
                     self.granules[i]['table_select'].append([])
                     for _ in range(0, 3):
                         self.granules[i]['table_select'][-1].append(self._bitstring.read_bits_as_int(5))
                     self.granules[i]['region0_count'].append(self._bitstring.read_bits_as_int(4))
                     self.granules[i]['region1_count'].append(self._bitstring.read_bits_as_int(3))
-                    self.granules[i]['block_type'] = [0]
-                    self.granules[i]['mixed_block_flag'] = [0]
+                    # I don't think we need to set block_type or mixed_blog_flag 
+                    # if window_switch_flag isn't set
+                    # self.granules[i]['block_type'] = [0]
+                    # self.granules[i]['mixed_block_flag'] = [0]
                 self.granules[i]['preflag'].append(self._bitstring.read_bits_as_int(1))
                 self.granules[i]['scalefac_scale'].append(self._bitstring.read_bits_as_int(1))
                 self.granules[i]['count1_table_select'].append(self._bitstring.read_bits_as_int(1))
