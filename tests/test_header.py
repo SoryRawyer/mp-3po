@@ -13,11 +13,12 @@ def test_header_decoding():
     """
     header_str = b'\xff\xfb\xb0\x00'
     header = MP3Header(header_str)
-    assert header.sync_word == '11111111111'
+    assert int(header.sync_word, 2) == 2047
     assert header.mpeg_version == MPEGVersionEncodings.MPEG_V1
     assert header.layer == LayerEncodings.THREE
     assert header.error_protection == '1'
     assert header.bitrate == 192000
+    assert int(header._bit_rate_bits, 2) == 11
     assert header.frequency == 44100
     assert header.pad_bit == '0'
     assert header.priv_bit == '0'
@@ -27,6 +28,7 @@ def test_header_decoding():
     assert header.original == '0'
     assert header.emphasis == '00'
     assert header.padding == 1
+    assert int(header.frame_size) == 626
 
 def main():
     """

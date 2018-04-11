@@ -235,8 +235,8 @@ class MP3Header(object):
                                                              'mpeg_version',
                                                              self.mpeg_version)
         # calculate the frame size in bytes
-        self.frame_size = (((144 * self.bitrate)/self.frequency)
-                           + (int(self.pad_bit, 2) * self.padding))
+        self.frame_size = int(144 * (self.bitrate/self.frequency)
+                              + (int(self.pad_bit, 2) * self.padding))
 
     def _check_for_valid_value(self, lookup_table, key1, value1, key2, value2):
         if (value1 not in lookup_table or value2 not in lookup_table[value1]):

@@ -44,8 +44,19 @@ class SideInfo(object):
             0 : defaultdict(list),
             1 : defaultdict(list),
         }
+        self.main_data_begin = self._bitstring.read_bits_as_int(9)
+        if header.channel == ChannelEncodings.MONO:
+            self.private_bits = self._bitstring.read_bits_as_int(5)
+        else:
+            self.private_bits = self._bitstring.read_bits_as_int(3)
+        self.scfsi_band = []
+        for i in range(0, channels):
+            self.scfsi_band.append([])
+            for j in range(0, 4):
+                self.scfsi_band[-1].append(self._bitstring.read_bits_as_int(1))
         for i in range(0, 2):
             for j in range(0, channels):
+                # print(self.granules)
                 self.granules[i]['part2_3_length'].append(self._bitstring.read_bits_as_int(12))
                 self.granules[i]['big_values'].append(self._bitstring.read_bits_as_int(9))
                 self.granules[i]['global_gain'].append(self._bitstring.read_bits_as_int(8))
@@ -74,6 +85,7 @@ class SideInfo(object):
                     self.granules[i]['region0_count'].append(self._bitstring.read_bits_as_int(4))
                     self.granules[i]['region1_count'].append(self._bitstring.read_bits_as_int(3))
                     self.granules[i]['block_type'] = [0]
+                    self.granules[i]['mixed_block_flag'] = [0]
                 self.granules[i]['preflag'].append(self._bitstring.read_bits_as_int(1))
                 self.granules[i]['scalefac_scale'].append(self._bitstring.read_bits_as_int(1))
                 self.granules[i]['count1_table_select'].append(self._bitstring.read_bits_as_int(1))

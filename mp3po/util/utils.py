@@ -42,3 +42,9 @@ class Bits(object):
         num_binary = bin(num).split('b')[1]
         pad_length = (8 - len(num_binary) % 8) if (8 - len(num_binary) % 8) != 8 else 0
         self._bits += (pad_length * '0') + num_binary
+
+    def peek(self, num: int):
+        """
+        peek : return num bits without updating the current position
+        """
+        return self._bits[self._position:self._position+num]
