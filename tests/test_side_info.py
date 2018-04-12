@@ -73,8 +73,8 @@ EXPECTED_RESULTS = [
                 'scalefac_scale' : [1, 0,],
                 'count1_table_select' : [1, 1,],
                 'sub_block_gain' : [[4, 1, 6]],
-                'block_type' : [2],
-                'mixed_block_flag' : [0],
+                'block_type' : [0, 2],
+                'mixed_block_flag' : [0, 0],
             }
         ]
     },
@@ -102,7 +102,7 @@ def test_side_info(side_info, wanted_results):
     assert granule_1['preflag'] == granule_1_expected['preflag']
     assert granule_1['scalefac_scale'] == granule_1_expected['scalefac_scale']
     assert granule_1['count1_table_select'] == granule_1_expected['count1_table_select']
-    if granule_1_expected == 1:
+    if 1 in granule_1_expected['window_switch_flag']:
         assert granule_1['block_type'] == granule_1_expected['block_type']
         assert granule_1['mixed_block_flag'] == granule_1_expected['mixed_block_flag']
         assert granule_1['sub_block_gain'] == granule_1_expected['sub_block_gain']
@@ -115,7 +115,7 @@ def test_side_info(side_info, wanted_results):
     assert granule_2['global_gain'] == granule_2_expected['global_gain']
     assert granule_2['scalefac_compress'] == granule_2_expected['scalefac_compress']
     assert granule_2['window_switch_flag'] == granule_2_expected['window_switch_flag']
-    if granule_2_expected == 1:
+    if 1 in granule_2_expected['window_switch_flag']:
         assert granule_2['block_type'] == granule_2_expected['block_type']
         assert granule_2['mixed_block_flag'] == granule_2_expected['mixed_block_flag']
         assert granule_2['sub_block_gain'] == granule_2_expected['sub_block_gain']

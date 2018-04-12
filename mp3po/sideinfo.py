@@ -79,6 +79,7 @@ class SideInfo(object):
                     #     self.granules[i]['region0_count'].append(8)
                     # else:
                     #     self.granules[i]['region0_count'].append(7)
+                    # TODO: come back and look at this later if stuff starts failing
                     # self.granules[i]['region1_count'].append(20 -
                     #                                          self.granules[i]['region0_count'][j])
                 else:
@@ -89,8 +90,8 @@ class SideInfo(object):
                     self.granules[i]['region1_count'].append(self._bitstring.read_bits_as_int(3))
                     # I don't think we need to set block_type or mixed_blog_flag 
                     # if window_switch_flag isn't set
-                    # self.granules[i]['block_type'] = [0]
-                    # self.granules[i]['mixed_block_flag'] = [0]
+                    self.granules[i]['block_type'] = [0]
+                    self.granules[i]['mixed_block_flag'] = [0]
                 self.granules[i]['preflag'].append(self._bitstring.read_bits_as_int(1))
                 self.granules[i]['scalefac_scale'].append(self._bitstring.read_bits_as_int(1))
                 self.granules[i]['count1_table_select'].append(self._bitstring.read_bits_as_int(1))

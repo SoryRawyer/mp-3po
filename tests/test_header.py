@@ -18,7 +18,6 @@ def test_header_decoding():
     assert header.layer == LayerEncodings.THREE
     assert header.error_protection == '1'
     assert header.bitrate == 192000
-    assert int(header._bit_rate_bits, 2) == 11
     assert header.frequency == 44100
     assert header.pad_bit == '0'
     assert header.priv_bit == '0'
