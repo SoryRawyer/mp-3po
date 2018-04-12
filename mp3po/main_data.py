@@ -39,6 +39,7 @@ class MainData(object):
         self._bits = Bits()
         self.header = header
         self.side_info = side_info
+        print(len(raw_bytes))
         for i in raw_bytes:
             self._bits.add_bits(i)
         channels = 1
@@ -136,7 +137,8 @@ class MainData(object):
             granule = self.side_info.granules[gran]
             for chan in range(0, channels):
                 self.frequency_lines[gran][chan] = [0] * 576
-                if gran['window_switching_flag'][chan] == 1 and gran['block_type'][chan] == 2:
+                print(chan, granule)
+                if granule['window_switch_flag'][chan] == 1 and granule['block_type'][chan] == 2:
                     region_1_start = 36
                     region_2_start = samples_per_granule
                 else:
@@ -147,7 +149,10 @@ class MainData(object):
                     region_2_idx = (granule['region0_count'][chan] +
                                     granule['region1_count'][chan] + 2)
                     region_2_start = long_bands[region_2_idx]
+                print(granule['big_values'][chan] * 2)
                 for i in range(0, granule['big_values'][chan] * 2, 2):
+                    if self._bits.peek(1) == b'':
+                        break
                     table_num = 0
                     if i < region_1_start:
                         table_num = granule['table_select'][chan][0]
@@ -155,10 +160,11 @@ class MainData(object):
                         table_num = granule['table_select'][chan][1]
                     else:
                         table_num = granule['table_select'][chan][2]
+                    if table_num == 0:
+                        self.frequency_lines[gran][chan][i] = 0.0
                     x, y = decode_big_values(self._bits, table_num)
                     self.frequency_lines[gran][chan][i] = float(x)
-                    i += 1
-                    self.frequency_lines[gran][chan][i] = float(y)
+                    self.frequency_lines[gran][chan][i+1] = float(y)
 
                 # we're done with the big values regions
                 # now, bring on the quadruples!
@@ -170,12 +176,10 @@ class MainData(object):
                         break
                     v, w, x, y = decode_quadruples(self._bits, table_num)
                     self.frequency_lines[gran][chan][i] = float(v)
-                    i += 1
-                    self.frequency_lines[gran][chan][i] = float(w)
-                    i += 1
-                    self.frequency_lines[gran][chan][i] = float(x)
-                    i += 1
-                    self.frequency_lines[gran][chan][i] = float(y)
+                    self.frequency_lines[gran][chan][i+1] = float(w)
+                    self.frequency_lines[gran][chan][i+2] = float(x)
+                    self.frequency_lines[gran][chan][i+3] = float(y)
                 i += 1
                 while i < 576:
                     self.frequency_lines[gran][chan][i] = 0
+                    i += 1

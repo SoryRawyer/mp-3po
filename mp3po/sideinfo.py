@@ -90,7 +90,10 @@ class SideInfo(object):
                     self.granules[i]['region1_count'].append(self._bitstring.read_bits_as_int(3))
                     # I don't think we need to set block_type or mixed_blog_flag 
                     # if window_switch_flag isn't set
-                    self.granules[i]['block_type'] = [0]
+                    if 'block_type' in self.granules[i]:
+                        self.granules[i]['block_type'].append(0)
+                    else:
+                        self.granules[i]['block_type'] = [0]
                     self.granules[i]['mixed_block_flag'] = [0]
                 self.granules[i]['preflag'].append(self._bitstring.read_bits_as_int(1))
                 self.granules[i]['scalefac_scale'].append(self._bitstring.read_bits_as_int(1))

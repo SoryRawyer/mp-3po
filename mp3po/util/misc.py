@@ -3,11 +3,14 @@ sys.path.append('../mp3po')
 
 from mp3po.sideinfo import SideInfo
 from mp3po.header import MP3Header, ChannelEncodings
+from mp3po.mp3 import MP3File
 
 def print_frame_information():
     frame_num = 1
     with open('tests/02 - undercurrent.mp3', 'rb') as f:
         buf = find_next_frame(f)
+        print(f.tell())
+        return
         while len(buf) != 0:
             bytes_read = 0
             header = MP3Header(buf)
@@ -38,7 +41,7 @@ def find_next_frame(f):
     buf = f.read(2)
     while (buf[-2] != 255 or (buf[-1] & 0xF0 != 240 and buf[-1] & 0xE0 != 224)):
         char = f.read(1)
-        print('char: {}', char)
+        # print('char: {}', char)
         if char == b'':
             print('(shrug)')
             sys.exit()
@@ -47,5 +50,10 @@ def find_next_frame(f):
     buf += f.read(2)
     return buf
 
+def try_mp3(filename):
+    mp3file = MP3File(filename)
+    mp3file.read_frames(1)
+
 if __name__ == '__main__':
     print_frame_information()
+    try_mp3('tests/02 - undercurrent.mp3')

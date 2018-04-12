@@ -23,10 +23,11 @@ class MP3File(object):
         with open(mp3_file, 'rb') as audio:
             # read audio data into a buffer. stop once we've reached the first mp3 frame
             buf = audio.read(2)
-            while not self._is_frame_start(buf[-2], buf[-1]):
+            while self._is_not_frame_start(buf[-2], buf[-1]):
                 buf += audio.read(1)
             # should we save the start location of the mp3 data? Yes
             self.position = audio.tell() - 2
+        print(self.position)
         self.previous_frame_size = 0
         # keep a buffer of main data from previous frames. when we need to read main data
         # we will follow one of the following:
@@ -65,15 +66,16 @@ class MP3File(object):
                     side_info_length = 32
                 side_info_bytes = audio.read(side_info_length)
                 side_info = SideInfo(header, side_info_bytes)
-
+                non_main_data_len += side_info_length
+                main_data_length = header.frame_size - non_main_data_len
                 # read until the next header so we have all the main data we could possibly want
                 while True:
                     new_byte = audio.peek(1)
                     if new_byte == b'':
                         still_reading = False
                         break
-                    self.main_data_buffer += audio.read(1)
-                    if self._is_frame_start(self.main_data_buffer[-2], self.main_data_buffer[-1]):
+                    self.main_data_buffer += audio.read(2)
+                    if len(self.main_data_buffer) >= main_data_length and not self._is_not_frame_start(self.main_data_buffer[-2], self.main_data_buffer[-1]):
                         # we've stumbled upon a new frame. return the file back to the start
                         # of the header and remove the last two bytes from the main data buffer
                         audio.seek(audio.tell() - 2)
@@ -84,13 +86,12 @@ class MP3File(object):
                 # calculate the position at which to start reading the main data
                 # then read the main data into a buffer and send that buffer somewhere
                 # so that we might one day hope to know the scaling factors
-                non_main_data_len += side_info_length
-                main_data_length = header.frame_size - non_main_data_len
+                print(header.frame_size, main_data_length, len(self.main_data_buffer))
                 main_data_bytes = self.main_data_buffer[:main_data_length]
                 self.main_data_buffer = self.main_data_buffer[main_data_length:]
                 main_data = MainData(header, side_info, main_data_bytes)
             self.position = audio.tell()
         return headers, data
 
-    def _is_frame_start(self, byte1, byte2):
-        return byte1 == 255 and (byte2 & 0xF0 != 240 or byte2 & 0xE0 != 224)
+    def _is_not_frame_start(self, byte1, byte2):
+        return (byte1 != 255 or (byte2 & 0xF0 != 240 and byte2 & 0xE0 != 224))
