@@ -1,5 +1,5 @@
 """
-utils.py : helpful things for mp3po
+bits.py : helpful things for mp3po
 """
 
 class Bits(object):
@@ -48,3 +48,9 @@ class Bits(object):
         peek : return num bits without updating the current position
         """
         return self._bits[self._position:self._position+num]
+
+    def tell(self):
+        """
+        tell : return the current position in the bitstream buffer thing
+        """
+        return self._position

@@ -5,7 +5,7 @@ pretty much a big ripoff from:
 https://github.com/hajimehoshi/go-mp3/blob/master/internal/maindata/huffman.go
 """
 
-from .util.utils import Bits
+from .util.bits import Bits
 
 HUFFMAN_TABLE = [
     # 1
@@ -293,49 +293,57 @@ HUFFMAN_TABLE = [
 # huffman table, tree length, and linbits
 HUFFMAN_TABLE_INFO = [
     (None, 0, 0),                    # Table  0
-    (HUFFMAN_TABLE, 7, 0),           # Table  1
-    (HUFFMAN_TABLE[7:], 17, 0),      # Table  2
-    (HUFFMAN_TABLE[24:], 17, 0),     # Table  3
+    (HUFFMAN_TABLE[:7], 7, 0),           # Table  1
+    (HUFFMAN_TABLE[7:24], 17, 0),      # Table  2
+    (HUFFMAN_TABLE[24:41], 17, 0),     # Table  3
     (HUFFMAN_TABLE, 0, 0),           # Table  4
-    (HUFFMAN_TABLE[41:], 31, 0),     # Table  5
-    (HUFFMAN_TABLE[72:], 31, 0),     # Table  6
-    (HUFFMAN_TABLE[103:], 71, 0),    # Table  7
-    (HUFFMAN_TABLE[174:], 71, 0),    # Table  8
-    (HUFFMAN_TABLE[245:], 71, 0),    # Table  9
-    (HUFFMAN_TABLE[316:], 127, 0),   # Table 10
-    (HUFFMAN_TABLE[443:], 127, 0),   # Table 11
-    (HUFFMAN_TABLE[570:], 127, 0),   # Table 12
-    (HUFFMAN_TABLE[697:], 511, 0),   # Table 13
+    (HUFFMAN_TABLE[41:72], 31, 0),     # Table  5
+    (HUFFMAN_TABLE[72:103], 31, 0),     # Table  6
+    (HUFFMAN_TABLE[103:174], 71, 0),    # Table  7
+    (HUFFMAN_TABLE[174:245], 71, 0),    # Table  8
+    (HUFFMAN_TABLE[245:316], 71, 0),    # Table  9
+    (HUFFMAN_TABLE[316:443], 127, 0),   # Table 10
+    (HUFFMAN_TABLE[443:570], 127, 0),   # Table 11
+    (HUFFMAN_TABLE[570:697], 127, 0),   # Table 12
+    (HUFFMAN_TABLE[697:1208], 511, 0),   # Table 13
     (HUFFMAN_TABLE, 0, 0),           # Table 14
-    (HUFFMAN_TABLE[1208:], 511, 0),  # Table 15
-    (HUFFMAN_TABLE[1719:], 511, 1),  # Table 16
-    (HUFFMAN_TABLE[1719:], 511, 2),  # Table 17
-    (HUFFMAN_TABLE[1719:], 511, 3),  # Table 18
-    (HUFFMAN_TABLE[1719:], 511, 4),  # Table 19
-    (HUFFMAN_TABLE[1719:], 511, 6),  # Table 20
-    (HUFFMAN_TABLE[1719:], 511, 8),  # Table 21
-    (HUFFMAN_TABLE[1719:], 511, 10), # Table 22
-    (HUFFMAN_TABLE[1719:], 511, 13), # Table 23
-    (HUFFMAN_TABLE[2230:], 512, 4),  # Table 24
-    (HUFFMAN_TABLE[2230:], 512, 5),  # Table 25
-    (HUFFMAN_TABLE[2230:], 512, 6),  # Table 26
-    (HUFFMAN_TABLE[2230:], 512, 7),  # Table 27
-    (HUFFMAN_TABLE[2230:], 512, 8),  # Table 28
-    (HUFFMAN_TABLE[2230:], 512, 9),  # Table 29
-    (HUFFMAN_TABLE[2230:], 512, 11), # Table 30
-    (HUFFMAN_TABLE[2230:], 512, 13), # Table 31
-    (HUFFMAN_TABLE[2742:], 31, 0),   # Table 32
+    (HUFFMAN_TABLE[1208:1719], 511, 0),  # Table 15
+    (HUFFMAN_TABLE[1719:2230], 511, 1),  # Table 16
+    (HUFFMAN_TABLE[1719:2230], 511, 2),  # Table 17
+    (HUFFMAN_TABLE[1719:2230], 511, 3),  # Table 18
+    (HUFFMAN_TABLE[1719:2230], 511, 4),  # Table 19
+    (HUFFMAN_TABLE[1719:2230], 511, 6),  # Table 20
+    (HUFFMAN_TABLE[1719:2230], 511, 8),  # Table 21
+    (HUFFMAN_TABLE[1719:2230], 511, 10), # Table 22
+    (HUFFMAN_TABLE[1719:2230], 511, 13), # Table 23
+    (HUFFMAN_TABLE[2230:2742], 512, 4),  # Table 24
+    (HUFFMAN_TABLE[2230:2742], 512, 5),  # Table 25
+    (HUFFMAN_TABLE[2230:2742], 512, 6),  # Table 26
+    (HUFFMAN_TABLE[2230:2742], 512, 7),  # Table 27
+    (HUFFMAN_TABLE[2230:2742], 512, 8),  # Table 28
+    (HUFFMAN_TABLE[2230:2742], 512, 9),  # Table 29
+    (HUFFMAN_TABLE[2230:2742], 512, 11), # Table 30
+    (HUFFMAN_TABLE[2230:2742], 512, 13), # Table 31
+    (HUFFMAN_TABLE[2742:2773], 31, 0),   # Table 32
     (HUFFMAN_TABLE[2773:], 31, 0),   # Table 33
+]
+
+BIG_VALUE_MAX = [
+    1,  2,  3,  3,  0,  4,  4,  6,  6,  6,  8,  8,  8,  16, 0,  16,
+    16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16,
 ]
 
 def decode_big_values(bits: Bits, table_num: int) -> (int, int):
     """
     decode_big_values : decode the bytes in the big values regions
     """
+    print('decode big values', table_num)
     table, tree_length, linbits = HUFFMAN_TABLE_INFO[table_num]
     if tree_length == 0:
         return 0, 0
-    x, y = traverse_table(table, bits)
+    # x, y = traverse_table(table, bits)
+    table_max = BIG_VALUE_MAX[table_num]
+    x, y = traverse_two(table, bits, table_max)
     if linbits != 0 and x == 15:
         # It looks like we don't actually need to append linbits bits
         # instead we just add the two integer values together
@@ -352,10 +360,13 @@ def decode_quadruples(bits: Bits, table_num: int) -> (int, int, int, int):
     """
     decode_quadruples : decode the bytes in the big values regions
     """
+    print('decode quadruples', table_num)
     table, tree_length, _ = HUFFMAN_TABLE_INFO[table_num]
     if tree_length == 0:
         return 0, 0, 0 ,0
-    x, y = traverse_table(table, bits)
+    # x, y = traverse_table(table, bits)
+    table_max = BIG_VALUE_MAX[table_num]
+    x, y = traverse_two(table, bits, table_max)
     v = (y >> 3) & 1
     w = (y >> 2) & 1
     x = (y >> 1) & 1
@@ -370,23 +381,37 @@ def decode_quadruples(bits: Bits, table_num: int) -> (int, int, int, int):
         y = -y
     return v, w, x, y
 
+def traverse_two(table: map, bits: Bits, table_max: int) -> (int, int):
+    """
+    traverse_two : let's try going off the c++ code now
+    """
+    bitnum = bits.read_bits_as_int(32)
+    for row in range(0, table_max):
+        for column in range(0, table_max):
+            i = 2 * table_max * row + 2 * column
+            value = table[i]
+            size = table[i + 1]
+            if value >> (32 - size) == bitnum >> (32 - size):
+                bits.seek(bits.tell() - (32 - size))
+                return (row, column)
+
+
 def traverse_table(table, bits):
     """
     traverse_table : traverse the huffman table and get back your x and your y
     """
-    point = 0
+    print(table, bits.peek(32))
+    point = 1
     for _ in range(0, 32):
-        if (table[point] & 0xff00) == 0:
-            # print(point, table[0])
-            x = int((table[point] >> 4) & 0xf)
-            y = int(table[point] & 0xf)
+        print(point)
+        if (table[point-1] & 0xff00) == 0:
+            x = int((table[point-1] >> 4) & 0xf)
+            y = int(table[point-1] & 0xf)
             return x, y
         if bits.read(1) == '1':
-            while table[point] >= 250:
-                point += int(table[point] & 0xff)
-            point += int(table[point] & 0xff)
+            # go right
+            point = (point * 2) + 1
         else:
-            while (table[point] >> 8) >= 250:
-                point += int(table[point]) >> 8
-            point += int(table[point]) >> 8
+            # go left
+            point *= 2
     return 0, 0

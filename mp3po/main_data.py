@@ -5,7 +5,7 @@ main_data.py : a place for all things main data
 from .header import MP3Header, ChannelEncodings
 from .huffman import decode_big_values, decode_quadruples
 from .sideinfo import SideInfo
-from .util.utils import Bits
+from .util.bits import Bits
 
 class MainData(object):
     """
@@ -153,6 +153,10 @@ class MainData(object):
                 for i in range(0, granule['big_values'][chan] * 2, 2):
                     if self._bits.peek(1) == b'':
                         break
+                    elif i >= len(self.frequency_lines[gran][chan]):
+                        # if we have enough samples, then I think the rest of the bit
+                        # are just stuffing
+                        return
                     table_num = 0
                     if i < region_1_start:
                         table_num = granule['table_select'][chan][0]

@@ -3,7 +3,7 @@ header.py : all things MP3 headers
 """
 
 from enum import Enum
-from .util.utils import Bits
+from .util.bits import Bits
 
 class ChannelEncodings(Enum):
     """

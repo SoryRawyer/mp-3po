@@ -3,7 +3,7 @@ sideinfo.py : get the side information for an MP3 frame
 """
 
 from collections import defaultdict
-from .util.utils import Bits
+from .util.bits import Bits
 from .header import ChannelEncodings, MP3Header
 
 class SideInfo(object):
