@@ -51,6 +51,8 @@ class MP3File(object):
             still_reading = True
             audio.seek(self.position)
             while still_reading:
+                print('reading header starting at byte offset {}'.format(audio.tell()))
+                # Read the 4 header bytes
                 buf = audio.read(4)
                 header = MP3Header(buf)
                 headers.append(header)
@@ -61,20 +63,31 @@ class MP3File(object):
                     audio.read(2)
                     non_main_data_len += 2
 
+                # if mono: side info is 17 bytes; else: 32
                 side_info_length = 17
                 if header.channel != ChannelEncodings.MONO:
                     side_info_length = 32
+                print("reading side info at: {}".format(audio.tell()))
                 side_info_bytes = audio.read(side_info_length)
                 side_info = SideInfo(header, side_info_bytes)
+                print("side info granules: {}".format(side_info.granules))
+                print("side info main_data_begin: {}".format(side_info.main_data_begin))
+                print("side info scfsi_band: {}".format(side_info.scfsi_band))
                 non_main_data_len += side_info_length
+
                 main_data_length = header.frame_size - non_main_data_len
+
                 # read until the next header so we have all the main data we could possibly want
                 while True:
                     new_byte = audio.peek(1)
                     if new_byte == b'':
                         still_reading = False
                         break
-                    self.main_data_buffer += audio.read(2)
+                    if self.main_data_buffer == b'':
+                        self.main_data_buffer += audio.read(2)
+                    else:
+                        self.main_data_buffer += audio.read(1)
+
                     if len(self.main_data_buffer) >= main_data_length and not self._is_not_frame_start(self.main_data_buffer[-2], self.main_data_buffer[-1]):
                         # we've stumbled upon a new frame. return the file back to the start
                         # of the header and remove the last two bytes from the main data buffer

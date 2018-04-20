@@ -39,7 +39,7 @@ class MainData(object):
         self._bits = Bits()
         self.header = header
         self.side_info = side_info
-        print(len(raw_bytes))
+        # print(len(raw_bytes))
         for i in raw_bytes:
             self._bits.add_bits(i)
         channels = 1
@@ -137,19 +137,22 @@ class MainData(object):
             granule = self.side_info.granules[gran]
             for chan in range(0, channels):
                 self.frequency_lines[gran][chan] = [0] * 576
-                print(chan, granule)
+                # print(chan, granule)
                 if granule['window_switch_flag'][chan] == 1 and granule['block_type'][chan] == 2:
                     region_1_start = 36
                     region_2_start = samples_per_granule
                 else:
                     sampling_freq = self.header.frequency
                     long_bands = self.scale_band_indicies[sampling_freq]['L']
+                    # print('gran chan region0: {}'.format(granule['region0_count']))
+                    # print('window_switch_flag: {}'.format(granule['window_switch_flag']))
                     region_1_start = long_bands[granule['region0_count'][chan] + 1]
 
                     region_2_idx = (granule['region0_count'][chan] +
                                     granule['region1_count'][chan] + 2)
+                    # print('region_2_idx: {}'.format(region_2_idx))
                     region_2_start = long_bands[region_2_idx]
-                print(granule['big_values'][chan] * 2)
+                # print(granule['big_values'][chan] * 2)
                 for i in range(0, granule['big_values'][chan] * 2, 2):
                     if self._bits.peek(1) == b'':
                         break
@@ -176,7 +179,7 @@ class MainData(object):
                 # iterate until we're either out of bits or we have 576 samples
                 for i in range(granule['big_values'][chan] * 2, 576, 4):
                     # If we're out of bits, break out!
-                    if self._bits.peek(1) == b'':
+                    if self._bits.peek(1) == b'' or i >= len(self.frequency_lines[gran][chan]) - 4:
                         break
                     v, w, x, y = decode_quadruples(self._bits, table_num)
                     self.frequency_lines[gran][chan][i] = float(v)

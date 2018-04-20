@@ -74,14 +74,16 @@ class SideInfo(object):
                     # the below code is present in 
                     # https://github.com/hajimehoshi/go-mp3/blob/master/internal/sideinfo/sideinfo.go
                     # but it's making my tests fail so (shrug)
-                    # if (self.granules[i]['block_type'][j] == 2
-                    #         and self.granules[i]['mixed_block_flag'][j] == 0):
-                    #     self.granules[i]['region0_count'].append(8)
-                    # else:
-                    #     self.granules[i]['region0_count'].append(7)
+
+                    # UPDATE: I think it's time to bring this back
+                    if (self.granules[i]['block_type'][j] == 2
+                            and self.granules[i]['mixed_block_flag'][j] == 0):
+                        self.granules[i]['region0_count'].append(8)
+                    else:
+                        self.granules[i]['region0_count'].append(7)
                     # TODO: come back and look at this later if stuff starts failing
-                    # self.granules[i]['region1_count'].append(20 -
-                    #                                          self.granules[i]['region0_count'][j])
+                    self.granules[i]['region1_count'].append(20 -
+                                                             self.granules[i]['region0_count'][j])
                 else:
                     self.granules[i]['table_select'].append([])
                     for _ in range(0, 3):
@@ -95,6 +97,9 @@ class SideInfo(object):
                     else:
                         self.granules[i]['block_type'] = [0]
                     self.granules[i]['mixed_block_flag'] = [0]
+                    self.granules[i]['sub_block_gain'].append([])
+                    for _ in range(0, 3):
+                        self.granules[i]['sub_block_gain'][-1].append(0)
                 self.granules[i]['preflag'].append(self._bitstring.read_bits_as_int(1))
                 self.granules[i]['scalefac_scale'].append(self._bitstring.read_bits_as_int(1))
                 self.granules[i]['count1_table_select'].append(self._bitstring.read_bits_as_int(1))

@@ -329,7 +329,7 @@ HUFFMAN_TABLE_INFO = [
 ]
 
 BIG_VALUE_MAX = [
-    1,  2,  3,  3,  0,  4,  4,  6,  6,  6,  8,  8,  8,  16, 0,  16,
+    1, 2, 3, 3, 0, 4, 4, 6, 6, 6, 8, 8, 8, 16, 0, 16,
     16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16,
 ]
 
@@ -337,13 +337,13 @@ def decode_big_values(bits: Bits, table_num: int) -> (int, int):
     """
     decode_big_values : decode the bytes in the big values regions
     """
-    print('decode big values', table_num)
+    # print('decode big values', table_num)
     table, tree_length, linbits = HUFFMAN_TABLE_INFO[table_num]
     if tree_length == 0:
         return 0, 0
-    # x, y = traverse_table(table, bits)
-    table_max = BIG_VALUE_MAX[table_num]
-    x, y = traverse_two(table, bits, table_max)
+    x, y = traverse_table(table, bits)
+    # table_max = BIG_VALUE_MAX[table_num]
+    # x, y = traverse_two(table, bits, table_max)
     if linbits != 0 and x == 15:
         # It looks like we don't actually need to append linbits bits
         # instead we just add the two integer values together
@@ -360,13 +360,13 @@ def decode_quadruples(bits: Bits, table_num: int) -> (int, int, int, int):
     """
     decode_quadruples : decode the bytes in the big values regions
     """
-    print('decode quadruples', table_num)
+    # print('decode quadruples', table_num)
     table, tree_length, _ = HUFFMAN_TABLE_INFO[table_num]
     if tree_length == 0:
         return 0, 0, 0 ,0
-    # x, y = traverse_table(table, bits)
-    table_max = BIG_VALUE_MAX[table_num]
-    x, y = traverse_two(table, bits, table_max)
+    x, y = traverse_table(table, bits)
+    # table_max = BIG_VALUE_MAX[table_num]
+    # x, y = traverse_two(table, bits, table_max)
     v = (y >> 3) & 1
     w = (y >> 2) & 1
     x = (y >> 1) & 1
@@ -391,6 +391,8 @@ def traverse_two(table: map, bits: Bits, table_max: int) -> (int, int):
             i = 2 * table_max * row + 2 * column
             value = table[i]
             size = table[i + 1]
+            if size > 32:
+                print('size: {}, row: {}, column: {}, table: {}'.format(size, row, column, table))
             if value >> (32 - size) == bitnum >> (32 - size):
                 bits.seek(bits.tell() - (32 - size))
                 return (row, column)
@@ -400,18 +402,20 @@ def traverse_table(table, bits):
     """
     traverse_table : traverse the huffman table and get back your x and your y
     """
-    print(table, bits.peek(32))
-    point = 1
+    point = 0
     for _ in range(0, 32):
-        print(point)
-        if (table[point-1] & 0xff00) == 0:
-            x = int((table[point-1] >> 4) & 0xf)
-            y = int(table[point-1] & 0xf)
+        if (table[point] & 0xff00) == 0:
+            x = int((table[point] >> 4) & 0xf)
+            y = int(table[point] & 0xf)
             return x, y
         if bits.read(1) == '1':
             # go right
-            point = (point * 2) + 1
+            while (table[point] & 0xff) >= 250:
+                point += int(table[point]) & 0xff
+            point += int(table[point]) & 0xff
         else:
             # go left
-            point *= 2
+            while (table[point] >> 8) >= 250:
+                point += int(table[point]) >> 8
+            point += int(table[point]) >> 8
     return 0, 0

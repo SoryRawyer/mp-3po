@@ -55,5 +55,6 @@ def try_mp3(filename):
     mp3file.read_frames(1)
 
 if __name__ == '__main__':
-    print_frame_information()
+    # print_frame_information()
     try_mp3('tests/02 - undercurrent.mp3')
+    # try_mp3('/Users/rorysawyer/media/audio/toe/the book about my idle plot on a vague anxiety/music for you.mp3')
