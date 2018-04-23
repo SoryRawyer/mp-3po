@@ -52,7 +52,8 @@ def find_next_frame(f):
 
 def try_mp3(filename):
     mp3file = MP3File(filename)
-    mp3file.read_frames(1)
+    frames = mp3file.read_frames(10)
+    print(str(frames[0]))
 
 if __name__ == '__main__':
     # print_frame_information()

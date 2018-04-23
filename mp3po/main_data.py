@@ -64,12 +64,13 @@ class MainData(object):
             self.scalefac_l[gran] = [0] * 2
             self.scalefac_s[gran] = [0] * 2
             for chan in range(0, channels):
-                slen1 = self.scalefac_sizes[granule['scalefac_compress'][chan]][0]
-                slen2 = self.scalefac_sizes[granule['scalefac_compress'][chan]][1]
+                channel = granule.channels[chan]
+                slen1 = self.scalefac_sizes[channel.scalefac_compress][0]
+                slen2 = self.scalefac_sizes[channel.scalefac_compress][1]
                 self.scalefac_l[gran][chan] = [0] * 22
                 self.scalefac_s[gran][chan] = [0] * 13
-                if granule['window_switch_flag'] == 1 and granule['block_type'][chan] == 2:
-                    if granule['mixed_block_flag'][chan] != 0:
+                if channel.window_switch_flag == 1 and channel.block_type == 2:
+                    if channel.mixed_block_flag != 0:
                         # mixed blocks
                         for k in range(0, 8):
                             self.scalefac_l[gran][chan][k] = self._bits.read(slen1)
@@ -136,9 +137,10 @@ class MainData(object):
             self.frequency_lines[gran] = [0] * 2
             granule = self.side_info.granules[gran]
             for chan in range(0, channels):
+                channel = granule.channels[chan]
                 self.frequency_lines[gran][chan] = [0] * 576
                 # print(chan, granule)
-                if granule['window_switch_flag'][chan] == 1 and granule['block_type'][chan] == 2:
+                if channel.window_switch_flag == 1 and channel.block_type == 2:
                     region_1_start = 36
                     region_2_start = samples_per_granule
                 else:
@@ -146,14 +148,14 @@ class MainData(object):
                     long_bands = self.scale_band_indicies[sampling_freq]['L']
                     # print('gran chan region0: {}'.format(granule['region0_count']))
                     # print('window_switch_flag: {}'.format(granule['window_switch_flag']))
-                    region_1_start = long_bands[granule['region0_count'][chan] + 1]
+                    region_1_start = long_bands[channel.region0_count + 1]
 
-                    region_2_idx = (granule['region0_count'][chan] +
-                                    granule['region1_count'][chan] + 2)
-                    # print('region_2_idx: {}'.format(region_2_idx))
+                    region_2_idx = (channel.region0_count +
+                                    channel.region1_count + 2)
+                    print('region_2_idx: {}'.format(region_2_idx))
                     region_2_start = long_bands[region_2_idx]
-                # print(granule['big_values'][chan] * 2)
-                for i in range(0, granule['big_values'][chan] * 2, 2):
+                # print(channel.big_values * 2)
+                for i in range(0, channel.big_values * 2, 2):
                     if self._bits.peek(1) == b'':
                         break
                     elif i >= len(self.frequency_lines[gran][chan]):
@@ -162,11 +164,11 @@ class MainData(object):
                         return
                     table_num = 0
                     if i < region_1_start:
-                        table_num = granule['table_select'][chan][0]
+                        table_num = channel.table_select[0]
                     elif i < region_2_start:
-                        table_num = granule['table_select'][chan][1]
+                        table_num = channel.table_select[1]
                     else:
-                        table_num = granule['table_select'][chan][2]
+                        table_num = channel.table_select[2]
                     if table_num == 0:
                         self.frequency_lines[gran][chan][i] = 0.0
                     x, y = decode_big_values(self._bits, table_num)
@@ -175,9 +177,9 @@ class MainData(object):
 
                 # we're done with the big values regions
                 # now, bring on the quadruples!
-                table_num = granule['count1_table_select'][chan]
+                table_num = channel.count1_table_select
                 # iterate until we're either out of bits or we have 576 samples
-                for i in range(granule['big_values'][chan] * 2, 576, 4):
+                for i in range(channel.big_values * 2, 576, 4):
                     # If we're out of bits, break out!
                     if self._bits.peek(1) == b'' or i >= len(self.frequency_lines[gran][chan]) - 4:
                         break

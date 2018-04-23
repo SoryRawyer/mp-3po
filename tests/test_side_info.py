@@ -66,13 +66,13 @@ EXPECTED_RESULTS = [
                 'global_gain' : [178, 152,],
                 'scalefac_compress' : [15, 2,],
                 'window_switch_flag' : [0, 1,],
-                'table_select' : [[19, 16, 15,], [8, 6]],
-                'region0_count' : [9,],
-                'region1_count' : [6,],
+                'table_select' : [[19, 16, 15,], [8, 6, 0]],
+                'region0_count' : [9, 8],
+                'region1_count' : [6, 12],
                 'preflag' : [0, 1,],
                 'scalefac_scale' : [1, 0,],
                 'count1_table_select' : [1, 1,],
-                'sub_block_gain' : [[4, 1, 6]],
+                'sub_block_gain' : [[0, 0, 0], [4, 1, 6]],
                 'block_type' : [0, 2],
                 'mixed_block_flag' : [0, 0],
             }
@@ -91,40 +91,26 @@ def test_side_info(side_info, wanted_results):
     # validate granule 1
     granule_1 = side_info.granules[0]
     granule_1_expected = wanted_results['granules'][0]
-    assert granule_1['part2_3_length'] == granule_1_expected['part2_3_length']
-    assert granule_1['big_values'] == granule_1_expected['big_values']
-    assert granule_1['global_gain'] == granule_1_expected['global_gain']
-    assert granule_1['scalefac_compress'] == granule_1_expected['scalefac_compress']
-    assert granule_1['window_switch_flag'] == granule_1_expected['window_switch_flag']
-    assert granule_1['table_select'] == granule_1_expected['table_select']
-    assert granule_1['region0_count'] == granule_1_expected['region0_count']
-    assert granule_1['region1_count'] == granule_1_expected['region1_count']
-    assert granule_1['preflag'] == granule_1_expected['preflag']
-    assert granule_1['scalefac_scale'] == granule_1_expected['scalefac_scale']
-    assert granule_1['count1_table_select'] == granule_1_expected['count1_table_select']
-    if 1 in granule_1_expected['window_switch_flag']:
-        assert granule_1['block_type'] == granule_1_expected['block_type']
-        assert granule_1['mixed_block_flag'] == granule_1_expected['mixed_block_flag']
-        assert granule_1['sub_block_gain'] == granule_1_expected['sub_block_gain']
+    for key in granule_1_expected:
+        try:
+            got_granule_values = granule_1.collect_channel_values(key)
+            assert got_granule_values == granule_1_expected[key]
+        except AssertionError as err:
+            print('got: {}'.format(got_granule_values))
+            print('want: {}'.format(granule_1_expected[key]))
+            raise err
 
     #validate granule 2
     granule_2 = side_info.granules[1]
     granule_2_expected = wanted_results['granules'][1]
-    assert granule_2['part2_3_length'] == granule_2_expected['part2_3_length']
-    assert granule_2['big_values'] == granule_2_expected['big_values']
-    assert granule_2['global_gain'] == granule_2_expected['global_gain']
-    assert granule_2['scalefac_compress'] == granule_2_expected['scalefac_compress']
-    assert granule_2['window_switch_flag'] == granule_2_expected['window_switch_flag']
-    if 1 in granule_2_expected['window_switch_flag']:
-        assert granule_2['block_type'] == granule_2_expected['block_type']
-        assert granule_2['mixed_block_flag'] == granule_2_expected['mixed_block_flag']
-        assert granule_2['sub_block_gain'] == granule_2_expected['sub_block_gain']
-    assert granule_2['table_select'] == granule_2_expected['table_select']
-    assert granule_2['region0_count'] == granule_2_expected['region0_count']
-    assert granule_2['region1_count'] == granule_2_expected['region1_count']
-    assert granule_2['preflag'] == granule_2_expected['preflag']
-    assert granule_2['scalefac_scale'] == granule_2_expected['scalefac_scale']
-    assert granule_2['count1_table_select'] == granule_2_expected['count1_table_select']
+    for key in granule_2_expected:
+        try:
+            got_granule_values = granule_2.collect_channel_values(key)
+            assert got_granule_values == granule_2_expected[key]
+        except AssertionError as err:
+            print('got: {}'.format(got_granule_values))
+            print('want: {}'.format(granule_2_expected[key]))
+            raise err
 
 
 def main():

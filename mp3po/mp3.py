@@ -2,6 +2,7 @@
 mp3.py : do mp3 things
 """
 
+from .frame import Frame
 from .header import MP3Header, ChannelEncodings
 from .main_data import MainData
 from .sideinfo import SideInfo
@@ -43,19 +44,19 @@ class MP3File(object):
           - headers for the number of frames read
           - data of each frame
         """
-        headers = []
-        data = []
+        frames = []
         if nframes == 0:
-            return headers, data
+            return frames
         with open(self.filename, 'rb') as audio:
             still_reading = True
             audio.seek(self.position)
             while still_reading:
+                if len(frames) == nframes:
+                    break
                 print('reading header starting at byte offset {}'.format(audio.tell()))
                 # Read the 4 header bytes
                 buf = audio.read(4)
                 header = MP3Header(buf)
-                headers.append(header)
                 non_main_data_len = 4
 
                 if header.error_protection == '1':
@@ -103,8 +104,10 @@ class MP3File(object):
                 main_data_bytes = self.main_data_buffer[:main_data_length]
                 self.main_data_buffer = self.main_data_buffer[main_data_length:]
                 main_data = MainData(header, side_info, main_data_bytes)
+                frame = Frame(header, side_info, main_data)
+                frames.append(frame)
             self.position = audio.tell()
-        return headers, data
+        return frames
 
     def _is_not_frame_start(self, byte1, byte2):
         return (byte1 != 255 or (byte2 & 0xF0 != 240 and byte2 & 0xE0 != 224))
